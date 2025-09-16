@@ -1,7 +1,7 @@
 import { Button } from "@chakra-ui/button";
 import { useDisclosure } from "@chakra-ui/hooks";
 import { Input } from "@chakra-ui/input";
-import { Box, Text } from "@chakra-ui/layout";
+import { Box, Text, HStack } from "@chakra-ui/layout";
 import {
   Menu,
   MenuButton,
@@ -17,7 +17,8 @@ import {
   DrawerOverlay,
 } from "@chakra-ui/modal";
 import { Tooltip } from "@chakra-ui/tooltip";
-import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { BellIcon, ChevronDownIcon, SunIcon, MoonIcon } from "@chakra-ui/icons";
+import { IconButton, useColorMode, useColorModeValue } from "@chakra-ui/react";
 import { Avatar } from "@chakra-ui/avatar";
 import { useHistory } from "react-router-dom";
 import { useState } from "react";
@@ -122,16 +123,25 @@ function SideDrawer() {
     }
   };
 
+  const { toggleColorMode, colorMode } = useColorMode();
+  const headerBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+
   return (
     <>
       <Box
         d="flex"
         justifyContent="space-between"
         alignItems="center"
-        bg="white"
+        bg={headerBg}
         w="100%"
         p="5px 10px 5px 10px"
-        borderWidth="5px"
+        borderWidth="1px"
+        borderColor={borderColor}
+        backdropFilter="blur(6px)"
+        position="sticky"
+        top={0}
+        zIndex={5}
       >
         <Tooltip label="Search Users to chat" hasArrow placement="bottom-end">
           <Button variant="ghost" onClick={onOpen}>
@@ -141,9 +151,18 @@ function SideDrawer() {
             </Text>
           </Button>
         </Tooltip>
-        <Text fontSize="2xl" fontFamily="Work sans">
-          Talk-A-Tive
-        </Text>
+        <HStack spacing={3}>
+          <Text fontSize="2xl" fontFamily="Work sans" fontWeight="600">
+            Talk-A-Tive
+          </Text>
+          <IconButton
+            aria-label="Toggle color mode"
+            size="sm"
+            variant="ghost"
+            onClick={toggleColorMode}
+            icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+          />
+        </HStack>
         <div>
           <Menu>
             <MenuButton p={1}>

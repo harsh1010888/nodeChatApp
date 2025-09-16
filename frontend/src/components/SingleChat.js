@@ -1,8 +1,8 @@
 import { FormControl } from "@chakra-ui/form-control";
 import { Input } from "@chakra-ui/input";
-import { Box, Text } from "@chakra-ui/layout";
+import { Box, Text, HStack } from "@chakra-ui/layout";
 import "./styles.css";
-import { IconButton, Spinner, useToast } from "@chakra-ui/react";
+import { IconButton, Spinner, useToast, Button, useColorModeValue } from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -158,6 +158,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }, timerLength);
   };
 
+  const chatBg = useColorModeValue("gray.100", "gray.700");
+  const inputBarBg = useColorModeValue("white", "gray.800");
+  const inputBorder = useColorModeValue("gray.200", "gray.600");
+
   return (
     <>
       {selectedChat ? (
@@ -201,11 +205,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             flexDir="column"
             justifyContent="flex-end"
             p={3}
-            bg="#E8E8E8"
+            bg={chatBg}
             w="100%"
             h="100%"
             borderRadius="lg"
             overflowY="hidden"
+            boxShadow="inner"
           >
             {loading ? (
               <Spinner
@@ -223,7 +228,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
             <FormControl
               onKeyDown={sendMessage}
-              id="first-name"
+              id="chat-input"
               isRequired
               mt={3}
             >
@@ -239,13 +244,37 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
-              <Input
-                variant="filled"
-                bg="#E0E0E0"
-                placeholder="Enter a message.."
-                value={newMessage}
-                onChange={typingHandler}
-              />
+              <HStack
+                bg={inputBarBg}
+                borderWidth="1px"
+                borderColor={inputBorder}
+                borderRadius="full"
+                px={3}
+                py={2}
+                spacing={3}
+                boxShadow="sm"
+              >
+                <Input
+                  variant="unstyled"
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={typingHandler}
+                  onKeyDown={sendMessage}
+                />
+                <Button
+                  colorScheme="brand"
+                  size="sm"
+                  borderRadius="full"
+                  onClick={(e) => {
+                    // fabricate an Enter key event logic reuse
+                    if (newMessage) {
+                      sendMessage({ key: 'Enter' });
+                    }
+                  }}
+                >
+                  Send
+                </Button>
+              </HStack>
             </FormControl>
           </Box>
         </>

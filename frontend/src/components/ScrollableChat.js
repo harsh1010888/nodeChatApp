@@ -8,9 +8,14 @@ import {
   isSameUser,
 } from "../config/ChatLogics";
 import { ChatState } from "../Context/ChatProvider";
+import { useColorModeValue } from "@chakra-ui/react";
 
 const ScrollableChat = ({ messages }) => {
   const { user } = ChatState();
+
+  const myMsgBg = useColorModeValue("brand.100", "brand.600");
+  const otherMsgBg = useColorModeValue("green.100", "green.600");
+  const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
 
   return (
     <ScrollableFeed>
@@ -30,20 +35,36 @@ const ScrollableChat = ({ messages }) => {
                 />
               </Tooltip>
             )}
-            <span
+            <div
               style={{
-                backgroundColor: `${
-                  m.sender._id === user._id ? "#BEE3F8" : "#B9F5D0"
-                }`,
+                background: m.sender._id === user._id ? myMsgBg : otherMsgBg,
+                color: textColor,
                 marginLeft: isSameSenderMargin(messages, m, i, user._id),
                 marginTop: isSameUser(messages, m, i, user._id) ? 3 : 10,
-                borderRadius: "20px",
-                padding: "5px 15px",
-                maxWidth: "75%",
+                borderRadius: 18,
+                padding: "6px 14px 8px 14px",
+                maxWidth: "72%",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+                position: "relative",
+                fontSize: "0.95rem",
+                lineHeight: 1.3,
+                transition: "background 0.2s ease"
               }}
             >
-              {m.content}
-            </span>
+              <div>{m.content}</div>
+              {m.createdAt && (
+                <div
+                  style={{
+                    fontSize: "0.65rem",
+                    opacity: 0.6,
+                    marginTop: 2,
+                    textAlign: "right",
+                  }}
+                >
+                  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              )}
+            </div>
           </div>
         ))}
     </ScrollableFeed>

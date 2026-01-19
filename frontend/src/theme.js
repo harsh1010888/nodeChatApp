@@ -2,65 +2,92 @@
 import { extendTheme } from "@chakra-ui/react";
 
 const config = {
-  initialColorMode: "light",
+  initialColorMode: "dark",
   useSystemColorMode: false,
 };
 
 const colors = {
   brand: {
-    50: "#e3f9ff",
-    100: "#c5ecff",
-    200: "#a6defb",
-    300: "#87cff5",
-    400: "#69c1ef",
-    500: "#4fa7d6", // primary mid
-    600: "#3a81a9",
-    700: "#275b79",
-    800: "#13354a",
-    900: "#00131e",
+    50: "#e0f2fe", // very light sky blue
+    100: "#bae6fd",
+    200: "#7dd3fc",
+    300: "#38bdf8", // sky blue - accents/buttons
+    400: "#0ea5e9",
+    500: "#2563eb", // main blue - sent messages
+    600: "#1d4ed8",
+    700: "#1e40af",
+    800: "#1e3a8a",
+    900: "#1e293b", // dark gray-blue - received messages
+  },
+  // Background colors
+  bg: {
+    dark: "#020617", // near-black
+    navy: "#0f172a", // dark navy
+    slate: "#1e293b", // dark gray-blue
+  },
+  // Status colors
+  status: {
+    online: "#22c55e", // green
+    offline: "#64748b", // muted gray
   },
 };
 
 const styles = {
   global: (props) => ({
     body: {
-      bg: props.colorMode === "dark" ? "gray.900" : "gray.50",
-      backgroundImage:
-        props.colorMode === "dark"
-          ? "radial-gradient(circle at 25% 25%, rgba(79,167,214,0.15), transparent 60%), linear-gradient(135deg,#121826 0%, #1F2937 100%)"
-          : "radial-gradient(circle at 25% 25%, rgba(79,167,214,0.25), transparent 60%), linear-gradient(135deg,#ffffff 0%, #f0f4f8 100%)",
+      bg: props.colorMode === "dark" ? "#0f172a" : "gray.50", // dark navy background
+      backgroundImage: "none",
       backgroundAttachment: "fixed",
       fontFamily: "'Work Sans', sans-serif",
+      color: props.colorMode === "dark" ? "#e2e8f0" : "gray.800",
     },
-    '::-webkit-scrollbar': { width: '8px' },
-    '::-webkit-scrollbar-thumb': {
-      background: props.colorMode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)',
-      borderRadius: '4px'
-    }
+    "::-webkit-scrollbar": { width: "6px" },
+    "::-webkit-scrollbar-track": {
+      background: props.colorMode === "dark" ? "#1e293b" : "rgba(0,0,0,0.05)",
+      borderRadius: "3px",
+    },
+    "::-webkit-scrollbar-thumb": {
+      background: props.colorMode === "dark" ? "#38bdf8" : "rgba(0,0,0,0.25)", // sky blue
+      borderRadius: "3px",
+    },
+    "::-webkit-scrollbar-thumb:hover": {
+      background: props.colorMode === "dark" ? "#2563eb" : "rgba(0,0,0,0.4)", // main blue
+    },
   }),
 };
 
 const components = {
   Button: {
-    baseStyle: { borderRadius: 'md' },
+    baseStyle: { borderRadius: "md" },
     variants: {
       solid: (props) => ({
-        bg: props.colorMode === 'dark' ? 'brand.500' : 'brand.500',
-        _hover: { bg: 'brand.600' }
-      })
-    }
+        bg: props.colorMode === "dark" ? "#38bdf8" : "brand.500", // sky blue
+        color: props.colorMode === "dark" ? "#020617" : "white",
+        _hover: {
+          bg: props.colorMode === "dark" ? "#2563eb" : "brand.600", // main blue on hover
+        },
+        _focus: {
+          boxShadow: "0 0 0 3px rgba(56, 189, 248, 0.3)",
+        },
+      }),
+    },
   },
   Input: {
     variants: {
       filled: (props) => ({
         field: {
-          bg: props.colorMode === 'dark' ? 'gray.700' : 'gray.100',
-          _hover: { bg: props.colorMode === 'dark' ? 'gray.600' : 'gray.200' },
-          _focus: { borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }
-        }
-      })
-    }
-  }
+          bg: props.colorMode === "dark" ? "#1e293b" : "gray.100", // dark gray-blue
+          color: props.colorMode === "dark" ? "#e2e8f0" : "gray.800",
+          _hover: { bg: props.colorMode === "dark" ? "#334155" : "gray.200" },
+          _focus: {
+            borderColor: "#38bdf8", // sky blue
+            bg: props.colorMode === "dark" ? "#1e293b" : "white",
+            boxShadow: "0 0 0 1px #38bdf8",
+          },
+        },
+      }),
+    },
+  },
 };
 
 const theme = extendTheme({ config, colors, styles, components });

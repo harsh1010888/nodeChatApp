@@ -2,7 +2,13 @@ import { FormControl } from "@chakra-ui/form-control";
 import { Input } from "@chakra-ui/input";
 import { Box, Text, HStack } from "@chakra-ui/layout";
 import "./styles.css";
-import { IconButton, Spinner, useToast, Button, useColorModeValue } from "@chakra-ui/react";
+import {
+  IconButton,
+  Spinner,
+  useToast,
+  Button,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -15,7 +21,8 @@ import animationData from "../animations/typing.json";
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import { ChatState } from "../Context/ChatProvider";
-const ENDPOINT = "http://localhost:5000"; // "https://talk-a-tive.herokuapp.com"; -> After deployment
+import FileUploadButton from "./miscellaneous/FileUploadButton";
+const ENDPOINT = process.env.REACT_APP_API_URL || window.location.origin;
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -104,6 +111,60 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   };
 
+  const sendMediaMessage = async (fileInfo) => {
+    if (!selectedChat) return;
+
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Determine media type from mimetype
+      let mediaType = "file";
+      if (fileInfo.mimetype) {
+        if (fileInfo.mimetype.startsWith("image")) mediaType = "image";
+        else if (fileInfo.mimetype.startsWith("video")) mediaType = "video";
+        else if (fileInfo.mimetype.includes("pdf")) mediaType = "pdf";
+      }
+
+      const { data } = await axios.post(
+        "/api/message",
+        {
+          content: "", // Empty content for media-only messages
+          chatId: selectedChat,
+          mediaUrl: fileInfo.url,
+          mediaType: mediaType,
+          fileName: fileInfo.filename,
+          fileSize: fileInfo.size,
+        },
+        config
+      );
+
+      socket.emit("new message", data);
+      setMessages([...messages, data]);
+
+      toast({
+        title: "File sent successfully!",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        description: "Failed to send the file",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
+  };
+
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
@@ -158,9 +219,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }, timerLength);
   };
 
-  const chatBg = useColorModeValue("gray.100", "gray.700");
-  const inputBarBg = useColorModeValue("white", "gray.800");
-  const inputBorder = useColorModeValue("gray.200", "gray.600");
+  const chatBg = useColorModeValue("gray.100", "#020617"); // near-black background
+  const inputBarBg = useColorModeValue("white", "#1e293b"); // dark gray-blue input
+  const inputBorder = useColorModeValue("gray.200", "rgba(100, 150, 255, 0.3)");
+  const textColor = useColorModeValue("gray.800", "white");
 
   return (
     <>
@@ -175,6 +237,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             d="flex"
             justifyContent={{ base: "space-between" }}
             alignItems="center"
+            color={textColor}
           >
             <IconButton
               d={{ base: "flex", md: "none" }}
@@ -210,7 +273,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             h="100%"
             borderRadius="lg"
             overflowY="hidden"
-            boxShadow="inner"
+            boxShadow="inset 0 0 20px rgba(0, 0, 0, 0.2)"
+            borderWidth="1px"
+            borderColor={inputBorder}
           >
             {loading ? (
               <Spinner
@@ -252,14 +317,17 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 px={3}
                 py={2}
                 spacing={3}
-                boxShadow="sm"
+                boxShadow="0 0 15px rgba(100, 150, 255, 0.1)"
               >
+                <FileUploadButton onUploadComplete={sendMediaMessage} />
                 <Input
                   variant="unstyled"
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={typingHandler}
                   onKeyDown={sendMessage}
+                  color={textColor}
+                  _placeholder={{ color: "gray.500" }}
                 />
                 <Button
                   colorScheme="brand"
@@ -268,7 +336,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   onClick={(e) => {
                     // fabricate an Enter key event logic reuse
                     if (newMessage) {
-                      sendMessage({ key: 'Enter' });
+                      sendMessage({ key: "Enter" });
                     }
                   }}
                 >
@@ -281,7 +349,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       ) : (
         // to get socket.io on same page
         <Box d="flex" alignItems="center" justifyContent="center" h="100%">
-          <Text fontSize="3xl" pb={3} fontFamily="Work sans">
+          <Text fontSize="3xl" pb={3} fontFamily="Work sans" color={textColor}>
             Click on a user to start chatting
           </Text>
         </Box>

@@ -1,4 +1,4 @@
-import { ViewIcon } from "@chakra-ui/icons";
+import { ViewIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   Modal,
   ModalOverlay,
@@ -15,23 +15,44 @@ import {
   Box,
   IconButton,
   Spinner,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  HStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ChatState } from "../../Context/ChatProvider";
 import UserBadgeItem from "../userAvatar/UserBadgeItem";
 import UserListItem from "../userAvatar/UserListItem";
 
 const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+  const cancelRef = useRef();
   const [groupChatName, setGroupChatName] = useState();
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [renameloading, setRenameLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const toast = useToast();
 
-  const { selectedChat, setSelectedChat, user } = ChatState();
+  const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
+
+  // Dark theme colors
+  const modalBg = useColorModeValue("white", "rgba(20, 20, 40, 0.95)");
+  const textColor = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.200", "rgba(100, 150, 255, 0.3)");
+  const inputBg = useColorModeValue("white", "rgba(30, 30, 60, 0.8)");
 
   const handleSearch = async (query) => {
     setSearch(query);
@@ -90,7 +111,10 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
     } catch (error) {
       toast({
         title: "Error Occured!",
-        description: error.response.data.message,
+        description:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to rename chat",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -146,7 +170,10 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
     } catch (error) {
       toast({
         title: "Error Occured!",
-        description: error.response.data.message,
+        description:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to add user",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -192,7 +219,10 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
     } catch (error) {
       toast({
         title: "Error Occured!",
-        description: error.response.data.message,
+        description:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to remove user",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -203,23 +233,74 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
     setGroupChatName("");
   };
 
+  const handleDeleteGroup = async () => {
+    if (selectedChat.groupAdmin._id !== user._id) {
+      toast({
+        title: "Only admin can delete the group!",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      await axios.delete(`/api/chat/group/${selectedChat._id}`, config);
+
+      // Remove chat from the list
+      setChats(chats.filter((c) => c._id !== selectedChat._id));
+      setSelectedChat();
+      setFetchAgain(!fetchAgain);
+      onDeleteClose();
+      onClose();
+
+      toast({
+        title: "Group Deleted Successfully!",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } catch (error) {
+      toast({
+        title: "Error Occurred!",
+        description: error.response?.data?.message || "Failed to delete group",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <>
       <IconButton d={{ base: "flex" }} icon={<ViewIcon />} onClick={onOpen} />
 
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
-        <ModalOverlay />
-        <ModalContent>
+        <ModalOverlay bg="rgba(0, 0, 0, 0.7)" backdropFilter="blur(5px)" />
+        <ModalContent bg={modalBg} borderWidth="1px" borderColor={borderColor}>
           <ModalHeader
             fontSize="35px"
             fontFamily="Work sans"
             d="flex"
             justifyContent="center"
+            color={textColor}
           >
             {selectedChat.chatName}
           </ModalHeader>
 
-          <ModalCloseButton />
+          <ModalCloseButton color={textColor} />
           <ModalBody d="flex" flexDir="column" alignItems="center">
             <Box w="100%" d="flex" flexWrap="wrap" pb={3}>
               {selectedChat.users.map((u) => (
@@ -237,6 +318,10 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
                 mb={3}
                 value={groupChatName}
                 onChange={(e) => setGroupChatName(e.target.value)}
+                bg={inputBg}
+                borderColor={borderColor}
+                color={textColor}
+                _placeholder={{ color: "gray.500" }}
               />
               <Button
                 variant="solid"
@@ -253,6 +338,10 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
                 placeholder="Add User to group"
                 mb={1}
                 onChange={(e) => handleSearch(e.target.value)}
+                bg={inputBg}
+                borderColor={borderColor}
+                color={textColor}
+                _placeholder={{ color: "gray.500" }}
               />
             </FormControl>
 
@@ -269,12 +358,72 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
             )}
           </ModalBody>
           <ModalFooter>
-            <Button onClick={() => handleRemove(user)} colorScheme="red">
-              Leave Group
-            </Button>
+            <HStack spacing={3} w="100%" justifyContent="space-between">
+              <Button
+                onClick={() => handleRemove(user)}
+                colorScheme="orange"
+                variant="outline"
+              >
+                Leave Group
+              </Button>
+              {selectedChat.groupAdmin._id === user._id && (
+                <Button
+                  onClick={onDeleteOpen}
+                  colorScheme="red"
+                  leftIcon={<DeleteIcon />}
+                >
+                  Delete Group
+                </Button>
+              )}
+            </HStack>
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+        isCentered
+      >
+        <AlertDialogOverlay bg="rgba(0, 0, 0, 0.7)" backdropFilter="blur(5px)">
+          <AlertDialogContent
+            bg={modalBg}
+            borderWidth="1px"
+            borderColor={borderColor}
+          >
+            <AlertDialogHeader
+              fontSize="lg"
+              fontWeight="bold"
+              color={textColor}
+            >
+              Delete Group
+            </AlertDialogHeader>
+
+            <AlertDialogBody color={textColor}>
+              Are you sure you want to delete "{selectedChat.chatName}"? This
+              action cannot be undone and all messages will be permanently
+              deleted.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose} variant="outline">
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={handleDeleteGroup}
+                ml={3}
+                isLoading={deleteLoading}
+                loadingText="Deleting..."
+              >
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </>
   );
 };

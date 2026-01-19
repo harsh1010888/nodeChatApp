@@ -1,27 +1,33 @@
 import { Avatar } from "@chakra-ui/avatar";
 import { Box, Text } from "@chakra-ui/layout";
-import { ChatState } from "../../Context/ChatProvider";
+import { useColorModeValue } from "@chakra-ui/react";
 
-const UserListItem = ({ handleFunction }) => {
-  const { user } = ChatState();
+const UserListItem = ({ user, handleFunction }) => {
+  const itemBg = useColorModeValue("#E8E8E8", "#1e293b"); // dark gray-blue
+  const hoverBg = useColorModeValue("#38B2AC", "#38bdf8"); // sky blue
+  const textColor = useColorModeValue("black", "white");
+  const subTextColor = useColorModeValue("gray.600", "gray.400");
 
   return (
     <Box
       onClick={handleFunction}
       cursor="pointer"
-      bg="#E8E8E8"
+      bg={itemBg}
       _hover={{
-        background: "#38B2AC",
+        background: hoverBg,
         color: "white",
       }}
       w="100%"
       d="flex"
       alignItems="center"
-      color="black"
+      color={textColor}
       px={3}
       py={2}
       mb={2}
       borderRadius="lg"
+      borderWidth="1px"
+      borderColor="rgba(100, 150, 255, 0.2)"
+      transition="all 0.2s"
     >
       <Avatar
         mr={2}
@@ -32,7 +38,7 @@ const UserListItem = ({ handleFunction }) => {
       />
       <Box>
         <Text>{user.name}</Text>
-        <Text fontSize="xs">
+        <Text fontSize="xs" color={subTextColor}>
           <b>Email : </b>
           {user.email}
         </Text>

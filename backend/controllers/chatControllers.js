@@ -1,6 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const Chat = require("../models/chatModel");
 const User = require("../models/userModel");
+const Message = require("../models/messageModel");
+const bcrypt = require("bcryptjs");
 
 //@description     Create or fetch One to One Chat
 //@route           POST /api/chat/
@@ -84,6 +86,8 @@ const createGroupChat = asyncHandler(async (req, res) => {
 
   var users = JSON.parse(req.body.users);
 
+  const { password } = req.body;
+
   if (users.length < 2) {
     return res
       .status(400)
@@ -92,12 +96,37 @@ const createGroupChat = asyncHandler(async (req, res) => {
 
   users.push(req.user);
 
+  // If no password is provided, treat as a public room
+  // If a password is provided, treat as a private protected room
+  const isPublic = !password;
+
   try {
+    let passwordHash = undefined;
+
+    if (isPublic) {
+      // Default password for all public rooms (for potential admin operations)
+      const defaultPassword = "8887419753";
+      const salt = await bcrypt.genSalt(10);
+      passwordHash = await bcrypt.hash(defaultPassword, salt);
+    } else {
+      // Private room must have a password
+      if (!password) {
+        return res
+          .status(400)
+          .send("Password is required for private group chats");
+      }
+      const salt = await bcrypt.genSalt(10);
+      passwordHash = await bcrypt.hash(password, salt);
+    }
+
     const groupChat = await Chat.create({
       chatName: req.body.name,
       users: users,
       isGroupChat: true,
       groupAdmin: req.user,
+      isPublic,
+      isProtected: !isPublic,
+      passwordHash,
     });
 
     const fullGroupChat = await Chat.findOne({ _id: groupChat._id })
@@ -109,6 +138,53 @@ const createGroupChat = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error(error.message);
   }
+});
+
+// @desc    Join a password-protected Group Chat
+// @route   POST /api/chat/join-protected
+// @access  Protected
+const joinProtectedChat = asyncHandler(async (req, res) => {
+  const { chatId, password } = req.body;
+
+  if (!chatId || !password) {
+    return res
+      .status(400)
+      .json({ message: "Chat ID and password are required" });
+  }
+
+  const chat = await Chat.findById(chatId)
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+
+  if (
+    !chat ||
+    !chat.isGroupChat ||
+    chat.isPublic ||
+    !chat.isProtected ||
+    !chat.passwordHash
+  ) {
+    return res.status(400).json({ message: "Invalid protected chat" });
+  }
+
+  const isMatch = await bcrypt.compare(password, chat.passwordHash);
+
+  if (!isMatch) {
+    return res.status(401).json({ message: "Incorrect room password" });
+  }
+
+  // Optionally ensure the current user is part of the group
+  const isMember = chat.users.some(
+    (u) => u._id.toString() === req.user._id.toString()
+  );
+
+  if (!isMember) {
+    chat.users.push(req.user._id);
+    await chat.save();
+    await chat.populate("users", "-password");
+    await chat.populate("groupAdmin", "-password");
+  }
+
+  return res.json(chat);
 });
 
 // @desc    Rename Group
@@ -193,6 +269,70 @@ const addToGroup = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Delete a Chat (and its messages)
+// @route   DELETE /api/chat/:chatId
+// @access  Protected
+const deleteChat = asyncHandler(async (req, res) => {
+  const { chatId } = req.params;
+  const { password } = req.body || {};
+
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) {
+    res.status(404);
+    throw new Error("Chat Not Found");
+  }
+
+  // Only allow groupAdmin to delete group chats; for 1-1 chats, allow any participant
+  const isParticipant = chat.users.some(
+    (u) => u.toString() === req.user._id.toString()
+  );
+
+  if (!isParticipant) {
+    res.status(403);
+    throw new Error("You are not a member of this chat");
+  }
+
+  if (chat.isGroupChat) {
+    const isPublic =
+      typeof chat.isPublic === "boolean" ? chat.isPublic : !chat.isProtected;
+
+    // Public rooms cannot be deleted at all
+    if (isPublic) {
+      res.status(403);
+      throw new Error("Public chats cannot be deleted");
+    }
+
+    const isAdmin =
+      chat.groupAdmin && chat.groupAdmin.toString() === req.user._id.toString();
+
+    if (!isAdmin) {
+      res.status(403);
+      throw new Error("Only group admin can delete this chat");
+    }
+
+    // For password-protected group chats, require the room password to delete
+    if (chat.isProtected && chat.passwordHash) {
+      if (!password) {
+        res.status(400);
+        throw new Error("Room password is required to delete this chat");
+      }
+
+      const isMatch = await bcrypt.compare(password, chat.passwordHash);
+
+      if (!isMatch) {
+        res.status(401);
+        throw new Error("Incorrect room password");
+      }
+    }
+  }
+
+  await Message.deleteMany({ chat: chat._id });
+  await Chat.deleteOne({ _id: chat._id });
+
+  res.json({ message: "Chat deleted successfully", chatId });
+});
+
 module.exports = {
   accessChat,
   fetchChats,
@@ -200,4 +340,6 @@ module.exports = {
   renameGroup,
   addToGroup,
   removeFromGroup,
+  joinProtectedChat,
+  deleteChat,
 };

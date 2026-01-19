@@ -22,6 +22,7 @@ import UserListItem from "../userAvatar/UserListItem";
 const GroupChatModal = ({ children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupChatName, setGroupChatName] = useState();
+  const [groupPassword, setGroupPassword] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -101,6 +102,7 @@ const GroupChatModal = ({ children }) => {
         {
           name: groupChatName,
           users: JSON.stringify(selectedUsers.map((u) => u._id)),
+          password: groupPassword || undefined,
         },
         config
       );
@@ -130,23 +132,45 @@ const GroupChatModal = ({ children }) => {
       <span onClick={onOpen}>{children}</span>
 
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
-        <ModalOverlay />
-        <ModalContent>
+        <ModalOverlay bg="rgba(0, 0, 0, 0.7)" backdropFilter="blur(5px)" />
+        <ModalContent
+          bg="rgba(20, 20, 40, 0.95)"
+          borderWidth="1px"
+          borderColor="rgba(100, 150, 255, 0.3)"
+        >
           <ModalHeader
             fontSize="35px"
             fontFamily="Work sans"
             d="flex"
             justifyContent="center"
+            color="white"
           >
             Create Group Chat
           </ModalHeader>
-          <ModalCloseButton />
+          <ModalCloseButton color="white" />
           <ModalBody d="flex" flexDir="column" alignItems="center">
             <FormControl>
               <Input
                 placeholder="Chat Name"
                 mb={3}
                 onChange={(e) => setGroupChatName(e.target.value)}
+                bg="rgba(30, 30, 60, 0.8)"
+                borderColor="rgba(100, 150, 255, 0.3)"
+                color="white"
+                _placeholder={{ color: "gray.500" }}
+              />
+            </FormControl>
+            <FormControl>
+              <Input
+                placeholder="Room Password (leave empty for public room)"
+                mb={3}
+                type="password"
+                value={groupPassword}
+                onChange={(e) => setGroupPassword(e.target.value)}
+                bg="rgba(30, 30, 60, 0.8)"
+                borderColor="rgba(100, 150, 255, 0.3)"
+                color="white"
+                _placeholder={{ color: "gray.500" }}
               />
             </FormControl>
             <FormControl>
@@ -154,6 +178,10 @@ const GroupChatModal = ({ children }) => {
                 placeholder="Add Users eg: John, Piyush, Jane"
                 mb={1}
                 onChange={(e) => handleSearch(e.target.value)}
+                bg="rgba(30, 30, 60, 0.8)"
+                borderColor="rgba(100, 150, 255, 0.3)"
+                color="white"
+                _placeholder={{ color: "gray.500" }}
               />
             </FormControl>
             <Box w="100%" d="flex" flexWrap="wrap">
@@ -167,7 +195,7 @@ const GroupChatModal = ({ children }) => {
             </Box>
             {loading ? (
               // <ChatLoading />
-              <div>Loading...</div>
+              <div style={{ color: "white" }}>Loading...</div>
             ) : (
               searchResult
                 ?.slice(0, 4)
@@ -181,7 +209,12 @@ const GroupChatModal = ({ children }) => {
             )}
           </ModalBody>
           <ModalFooter>
-            <Button onClick={handleSubmit} colorScheme="blue">
+            <Button
+              onClick={handleSubmit}
+              colorScheme="blue"
+              bg="rgba(100, 150, 255, 0.4)"
+              _hover={{ bg: "rgba(100, 150, 255, 0.6)" }}
+            >
               Create Chat
             </Button>
           </ModalFooter>

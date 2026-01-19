@@ -1,15 +1,27 @@
+# Dependencies
 /node_modules
 node_modules/
 /frontend/node_modules/
+/backend/node_modules/
+
+# Environment variables (IMPORTANT - Contains API keys and passwords)
 .env
 backend/.env
 frontend/.env
+*.env
+.env.local
+.env.production
+
+# Uploaded files
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
 # Build output
 build/
@@ -18,21 +30,36 @@ frontend/build/
 
 # Coverage
 coverage/
+*.lcov
 
 # Caches
 .cache/
 .parcel-cache/
+.eslintcache
 
 # IDE/editor
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-workspace
+*.sublime-project
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Misc
 *.log
 *.tgz
+*.zip
+.npmrc
+package-lock.json
+
+# Testing
+/coverage

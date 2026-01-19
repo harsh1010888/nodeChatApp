@@ -124,8 +124,10 @@ function SideDrawer() {
   };
 
   const { toggleColorMode, colorMode } = useColorMode();
-  const headerBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const headerBg = useColorModeValue("white", "#0f172a"); // dark navy
+  const borderColor = useColorModeValue("gray.200", "rgba(56, 189, 248, 0.2)"); // sky blue
+  const textColor = useColorModeValue("black", "#e2e8f0"); // light text
+  const buttonBg = useColorModeValue("gray.100", "#1e293b"); // dark gray-blue
 
   return (
     <>
@@ -138,13 +140,22 @@ function SideDrawer() {
         p="5px 10px 5px 10px"
         borderWidth="1px"
         borderColor={borderColor}
-        backdropFilter="blur(6px)"
+        backdropFilter="blur(10px)"
         position="sticky"
         top={0}
         zIndex={5}
+        boxShadow="0 4px 20px rgba(0, 0, 0, 0.3)"
       >
         <Tooltip label="Search Users to chat" hasArrow placement="bottom-end">
-          <Button variant="ghost" onClick={onOpen}>
+          <Button
+            variant="ghost"
+            onClick={onOpen}
+            color={textColor}
+            bg={buttonBg}
+            _hover={{ bg: "rgba(100, 150, 255, 0.2)" }}
+            borderWidth="1px"
+            borderColor={borderColor}
+          >
             <i className="fas fa-search"></i>
             <Text d={{ base: "none", md: "flex" }} px={4}>
               Search User
@@ -152,15 +163,21 @@ function SideDrawer() {
           </Button>
         </Tooltip>
         <HStack spacing={3}>
-          <Text fontSize="2xl" fontFamily="Work sans" fontWeight="600">
-            Talk-A-Tive
+          <Text
+            fontSize="2xl"
+            fontFamily="Work sans"
+            fontWeight="600"
+            color={textColor}
+          >
+            Node Chat
           </Text>
           <IconButton
             aria-label="Toggle color mode"
             size="sm"
             variant="ghost"
             onClick={toggleColorMode}
-            icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+            icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+            color={textColor}
           />
         </HStack>
         <div>
@@ -170,9 +187,9 @@ function SideDrawer() {
                 count={notification.length}
                 effect={Effect.SCALE}
               />
-              <BellIcon fontSize="2xl" m={1} />
+              <BellIcon fontSize="2xl" m={1} color={textColor} />
             </MenuButton>
-            <MenuList pl={2}>
+            <MenuList bg={headerBg} borderColor={borderColor}>
               {!notification.length && "No New Messages"}
               {notification.map((notif) => (
                 <MenuItem
@@ -181,6 +198,7 @@ function SideDrawer() {
                     setSelectedChat(notif.chat);
                     setNotification(notification.filter((n) => n !== notif));
                   }}
+                  _hover={{ bg: "rgba(56, 189, 248, 0.15)" }} // sky blue hover
                 >
                   {notif.chat.isGroupChat
                     ? `New Message in ${notif.chat.chatName}`
@@ -190,7 +208,13 @@ function SideDrawer() {
             </MenuList>
           </Menu>
           <Menu>
-            <MenuButton as={Button} bg="white" rightIcon={<ChevronDownIcon />}>
+            <MenuButton
+              as={Button}
+              bg={buttonBg}
+              rightIcon={<ChevronDownIcon color={textColor} />}
+              borderColor={borderColor}
+              borderWidth="1px"
+            >
               <Avatar
                 size="sm"
                 cursor="pointer"
@@ -198,21 +222,38 @@ function SideDrawer() {
                 src={user.pic}
               />
             </MenuButton>
-            <MenuList>
+            <MenuList bg={headerBg} borderColor={borderColor}>
               <ProfileModal user={user}>
-                <MenuItem>My Profile</MenuItem>{" "}
+                <MenuItem _hover={{ bg: "rgba(56, 189, 248, 0.15)" }}>
+                  My Profile
+                </MenuItem>
               </ProfileModal>
-              <MenuDivider />
-              <MenuItem onClick={logoutHandler}>Logout</MenuItem>
+              <MenuDivider borderColor={borderColor} />
+              <MenuItem
+                onClick={logoutHandler}
+                _hover={{ bg: "rgba(100, 150, 255, 0.2)" }}
+              >
+                Logout
+              </MenuItem>
             </MenuList>
           </Menu>
         </div>
       </Box>
 
       <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerHeader borderBottomWidth="1px">Search Users</DrawerHeader>
+        <DrawerOverlay bg="rgba(0, 0, 0, 0.6)" />
+        <DrawerContent
+          bg={headerBg}
+          borderRightColor={borderColor}
+          borderRightWidth="1px"
+        >
+          <DrawerHeader
+            borderBottomWidth="1px"
+            borderColor={borderColor}
+            color={textColor}
+          >
+            Search Users
+          </DrawerHeader>
           <DrawerBody>
             <Box d="flex" pb={2}>
               <Input
@@ -220,8 +261,19 @@ function SideDrawer() {
                 mr={2}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                bg={buttonBg}
+                borderColor={borderColor}
+                color={textColor}
+                _placeholder={{ color: "gray.500" }}
               />
-              <Button onClick={handleSearch}>Go</Button>
+              <Button
+                onClick={handleSearch}
+                colorScheme="blue"
+                bg="#38bdf8" // sky blue
+                _hover={{ bg: "#2563eb" }} // main blue hover
+              >
+                Go
+              </Button>
             </Box>
             {loading ? (
               <ChatLoading />

@@ -11,7 +11,7 @@ import {
 import { ChatState } from "../Context/ChatProvider";
 import { useColorModeValue } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../config/axios";
 import SummaryModal from "./miscellaneous/SummaryModal";
 
 const ScrollableChat = ({ messages }) => {

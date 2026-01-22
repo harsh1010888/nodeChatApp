@@ -22,7 +22,7 @@ import { IconButton, useColorMode, useColorModeValue } from "@chakra-ui/react";
 import { Avatar } from "@chakra-ui/avatar";
 import { useHistory } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
+import axios from "../../config/axios";
 import { useToast } from "@chakra-ui/toast";
 import ChatLoading from "../ChatLoading";
 import { Spinner } from "@chakra-ui/spinner";

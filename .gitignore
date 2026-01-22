@@ -58,7 +58,6 @@ Thumbs.db
 *.log
 *.tgz
 *.zip
-.npmrc
 package-lock.json
 
 # Testing

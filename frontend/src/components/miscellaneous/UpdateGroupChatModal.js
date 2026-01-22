@@ -100,7 +100,7 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
           chatId: selectedChat._id,
           chatName: groupChatName,
         },
-        config
+        config,
       );
 
       console.log(data._id);
@@ -161,7 +161,7 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
           chatId: selectedChat._id,
           userId: user1._id,
         },
-        config
+        config,
       );
 
       setSelectedChat(data);
@@ -209,7 +209,7 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
           chatId: selectedChat._id,
           userId: user1._id,
         },
-        config
+        config,
       );
 
       user1._id === user._id ? setSelectedChat() : setSelectedChat(data);

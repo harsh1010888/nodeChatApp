@@ -59,7 +59,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
       const { data } = await axios.get(
         `/api/message/${selectedChat._id}`,
-        config
+        config,
       );
       setMessages(data);
       setLoading(false);
@@ -94,7 +94,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             content: newMessage,
             chatId: selectedChat,
           },
-          config
+          config,
         );
         socket.emit("new message", data);
         setMessages([...messages, data]);
@@ -140,7 +140,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           fileName: fileInfo.filename,
           fileSize: fileInfo.size,
         },
-        config
+        config,
       );
 
       socket.emit("new message", data);

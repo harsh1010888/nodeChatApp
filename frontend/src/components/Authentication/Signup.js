@@ -65,7 +65,7 @@ const Signup = () => {
           password,
           pic,
         },
-        config
+        config,
       );
       console.log(data);
       toast({

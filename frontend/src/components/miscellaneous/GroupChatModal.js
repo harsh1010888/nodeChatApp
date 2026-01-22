@@ -104,7 +104,7 @@ const GroupChatModal = ({ children }) => {
           users: JSON.stringify(selectedUsers.map((u) => u._id)),
           password: groupPassword || undefined,
         },
-        config
+        config,
       );
       setChats([data, ...chats]);
       onClose();

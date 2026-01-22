@@ -75,7 +75,7 @@ const ScrollableChat = ({ messages }) => {
       const { data } = await axios.post(
         "/api/message/summarize",
         { text: messageText },
-        config
+        config,
       );
 
       setSummary(data.summary);

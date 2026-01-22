@@ -73,7 +73,7 @@ const MyChats = ({ fetchAgain }) => {
       const { data } = await axios.post(
         "/api/chat/join-protected",
         { chatId: chat._id, password },
-        config
+        config,
       );
 
       setUnlockedChats([...unlockedChats, chat._id]);
@@ -99,7 +99,7 @@ const MyChats = ({ fetchAgain }) => {
     const confirmDelete = window.confirm(
       chat.isGroupChat
         ? `Delete group "${chat.chatName}" for all members?`
-        : "Delete this conversation?"
+        : "Delete this conversation?",
     );
 
     if (!confirmDelete) return;

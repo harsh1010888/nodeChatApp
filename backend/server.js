@@ -13,12 +13,24 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 connectDB();
 const app = express();
 
-// CORS configuration
+// CORS configuration - Allow multiple origins
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",")
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json()); // to accept json data
@@ -43,7 +55,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname1, "/frontend/build")));
 
   app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
+    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html")),
   );
 } else {
   app.get("/", (req, res) => {
@@ -61,13 +73,14 @@ const PORT = process.env.PORT;
 
 const server = app.listen(
   PORT,
-  console.log(`Server running on PORT ${PORT}...`.yellow.bold)
+  console.log(`Server running on PORT ${PORT}...`.yellow.bold),
 );
 
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: allowedOrigins,
+    credentials: true,
   },
 });
 
